@@ -226,6 +226,17 @@ export function listOrders(): Order[] {
   }));
 }
 
+export function listOrderHistory() {
+  return orders.map((order) => ({
+    orderId: order.id,
+    createdAt: order.createdAt,
+    couponCode: order.appliedCouponCode ?? null,
+    totalBeforeDiscount: order.subtotal,
+    discountAmount: order.discountAmount,
+    totalAfterDiscount: order.total,
+  }));
+}
+
 export function listCoupons(): Coupon[] {
   return coupons.map((coupon) => ({ ...coupon }));
 }
