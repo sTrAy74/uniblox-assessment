@@ -16,6 +16,7 @@ export function getCartSummary(): CartSummary {
     .map((item) => {
       const product = getProductById(item.productId);
       if (!product) {
+        // Drop orphaned cart entries if a product is no longer in the catalog.
         return null;
       }
 
@@ -42,6 +43,7 @@ export function getCartSummary(): CartSummary {
 }
 
 export function addToCart(payload: AddToCartRequest): CartSummary {
+  // Default to 1 so callers can omit quantity for quick-add behavior.
   const quantityToAdd = payload.quantity ?? 1;
   const existingItem = cartItems.find((item) => item.productId === payload.productId);
 
@@ -75,4 +77,13 @@ export function removeFromCart(productId: string): CartSummary | null {
 
   cartItems.splice(itemIndex, 1);
   return getCartSummary();
+}
+
+export function clearCart(): void {
+  // Preserve array identity so existing references remain valid in tests and callers.
+  cartItems.splice(0, cartItems.length);
+}
+
+export function resetCartForTests(): void {
+  clearCart();
 }

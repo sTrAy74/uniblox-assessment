@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Demo E-commerce Store (Next.js)
 
-## Getting Started
+This is a demo store backend/frontend foundation built with Next.js App Router.
 
-First, run the development server:
+## Scripts
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- `npm run dev` - start local development server
+- `npm run lint` - run eslint
+- `npm run test` - run unit tests with Vitest
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API Endpoints
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Cart
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `GET /api/cart` - fetch current cart summary
+- `POST /api/cart` - add item to cart
+  - body: `{ "productId": "p-001", "quantity": 2 }`
+- `PATCH /api/cart` - update item quantity
+  - body: `{ "productId": "p-001", "quantity": 3 }`
+- `DELETE /api/cart` - remove item from cart
+  - body: `{ "productId": "p-001" }`
 
-## Learn More
+### Checkout
 
-To learn more about Next.js, take a look at the following resources:
+- `POST /api/checkout` - place order and optionally apply coupon
+  - body: `{ "couponCode": "SAVE10-ABC123" }` (`couponCode` optional)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Admin
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `POST /api/admin/discounts/generate` - generate coupon only when condition is satisfied
+  - condition: at least one unclaimed reward for every 2 successful orders
+- `GET /api/admin/metrics` - fetch:
+  - purchased items count
+  - revenue
+  - discount codes count
+  - total discounts given
 
-## Deploy on Vercel
+### Debug Visibility (Demo)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GET /api/orders` - list placed orders
+- `GET /api/coupons` - list issued coupons
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Discount Rule
+
+- Every **2nd successful order** makes the store eligible for one coupon generation.
+- Coupon generation is done through the admin API.
+- Coupon discount is **10%**.
+- Coupon is **single-use**.
+- Coupon validity is **2 hours** from issue time.

@@ -37,3 +37,24 @@ export type UpdateCartItemRequest = {
 export type RemoveCartItemRequest = {
   productId: string;
 };
+
+export type CheckoutRequest = {
+  couponCode?: string;
+};
+
+export type Coupon = {
+  code: string;
+  discountPercent: number;
+  expiresAt: string;
+  usedAt?: string;
+};
+
+export type Order = {
+  id: string;
+  createdAt: string;
+  items: CartLine[];
+  subtotal: number;
+  discountAmount: number;
+  total: number;
+  appliedCouponCode?: string;
+};
