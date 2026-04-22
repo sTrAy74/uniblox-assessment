@@ -56,3 +56,23 @@ export function addToCart(payload: AddToCartRequest): CartSummary {
 
   return getCartSummary();
 }
+
+export function updateCartItemQuantity(productId: string, quantity: number): CartSummary | null {
+  const existingItem = cartItems.find((item) => item.productId === productId);
+  if (!existingItem) {
+    return null;
+  }
+
+  existingItem.quantity = quantity;
+  return getCartSummary();
+}
+
+export function removeFromCart(productId: string): CartSummary | null {
+  const itemIndex = cartItems.findIndex((item) => item.productId === productId);
+  if (itemIndex < 0) {
+    return null;
+  }
+
+  cartItems.splice(itemIndex, 1);
+  return getCartSummary();
+}

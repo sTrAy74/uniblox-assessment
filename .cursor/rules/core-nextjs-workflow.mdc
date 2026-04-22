@@ -1,0 +1,22 @@
+---
+description: Core workflow for safe Next.js 16 changes
+alwaysApply: true
+---
+
+# Core Next.js Workflow
+
+- Treat this project as **Next.js 16**; do not assume older Next.js behavior.
+- Before implementing framework-specific behavior, check relevant docs in `node_modules/next/dist/docs/`.
+- Prefer minimal, targeted edits over broad refactors.
+- Preserve existing user changes and avoid destructive git commands.
+
+## Validation Checklist
+
+- Run the smallest relevant verification step after edits (lint, typecheck, or focused build step).
+- If verification cannot run, explicitly state what was not verified and why.
+- Keep `.gitignore` aligned with generated artifacts when adding new tools.
+
+## Code Style
+
+- Follow existing project patterns in `src/` for naming and file organization.
+- Add brief comments only where logic is non-obvious.

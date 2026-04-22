@@ -28,3 +28,12 @@ export type AddToCartRequest = {
   productId: string;
   quantity?: number;
 };
+
+export type UpdateCartItemRequest = {
+  productId: string;
+  quantity: number;
+};
+
+export type RemoveCartItemRequest = {
+  productId: string;
+};

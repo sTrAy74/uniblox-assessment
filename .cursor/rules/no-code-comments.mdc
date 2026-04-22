@@ -1,0 +1,11 @@
+---
+description: Do not add comments in source code
+alwaysApply: true
+---
+
+# No Code Comments
+
+- Do not add comments in code files.
+- Do not add inline comments, block comments, or doc comments.
+- Prefer clear naming, small functions, and straightforward structure instead of explanatory comments.
+- If logic is unclear, refactor the code rather than annotating it.

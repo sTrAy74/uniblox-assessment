@@ -1,0 +1,12 @@
+---
+description: Write natural, maintainable, human-like code
+alwaysApply: true
+---
+
+# Human-Like Code
+
+- Write code that reads like it was authored by a careful teammate.
+- Match existing project conventions for naming, structure, and abstraction level.
+- Avoid repetitive boilerplate, generic placeholder names, and over-engineered patterns.
+- Keep control flow simple and explicit; prioritize maintainability over cleverness.
+- Make minimal, purposeful edits that solve the requested problem directly.
