@@ -7,6 +7,7 @@ const REWARD_COUPON_TTL_MS = 2 * 60 * 60 * 1000;
 
 const orders: Order[] = [];
 const coupons: Coupon[] = [];
+const milestoneIssuance = new Map<number, { autoIssued: boolean; adminIssued: boolean }>();
 
 function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100;
@@ -33,6 +34,24 @@ function issueRewardCoupon(now: Date): Coupon {
 
 function isNthOrderConditionSatisfied(): boolean {
   return orders.length > 0 && orders.length % REWARD_ORDER_INTERVAL === 0;
+}
+
+function getCurrentMilestoneNumber(): number | null {
+  if (!isNthOrderConditionSatisfied()) {
+    return null;
+  }
+  return orders.length / REWARD_ORDER_INTERVAL;
+}
+
+function ensureMilestoneState(milestone: number): { autoIssued: boolean; adminIssued: boolean } {
+  const existingState = milestoneIssuance.get(milestone);
+  if (existingState) {
+    return existingState;
+  }
+
+  const initialState = { autoIssued: false, adminIssued: false };
+  milestoneIssuance.set(milestone, initialState);
+  return initialState;
 }
 
 function getCouponByCode(code: string): Coupon | undefined {
@@ -135,7 +154,15 @@ export function checkoutCart(payload: CheckoutRequest): CheckoutResult {
 
   orders.push(order);
   clearCart();
-  const rewardCoupon = isNthOrderConditionSatisfied() ? issueRewardCoupon(now) : undefined;
+  const milestone = getCurrentMilestoneNumber();
+  let rewardCoupon: Coupon | undefined;
+  if (milestone !== null) {
+    const milestoneState = ensureMilestoneState(milestone);
+    if (!milestoneState.autoIssued) {
+      rewardCoupon = issueRewardCoupon(now);
+      milestoneState.autoIssued = true;
+    }
+  }
 
   return {
     success: true,
@@ -159,7 +186,19 @@ type GenerateDiscountCodeResult =
     };
 
 export function generateDiscountCode(): GenerateDiscountCodeResult {
-  if (!isNthOrderConditionSatisfied()) {
+  const milestone = getCurrentMilestoneNumber();
+  if (milestone === null) {
+    return {
+      success: false,
+      error: {
+        code: "CONDITION_NOT_MET",
+        message: "Discount code generation condition is not satisfied yet.",
+      },
+    };
+  }
+
+  const milestoneState = ensureMilestoneState(milestone);
+  if (milestoneState.adminIssued) {
     return {
       success: false,
       error: {
@@ -170,6 +209,7 @@ export function generateDiscountCode(): GenerateDiscountCodeResult {
   }
 
   const coupon = issueRewardCoupon(new Date());
+  milestoneState.adminIssued = true;
 
   return {
     success: true,
@@ -209,6 +249,7 @@ export function getAdminMetrics() {
 export function resetCheckoutStoreForTests(): void {
   orders.splice(0, orders.length);
   coupons.splice(0, coupons.length);
+  milestoneIssuance.clear();
 }
 
 export function forceExpireCouponForTests(code: string): void {

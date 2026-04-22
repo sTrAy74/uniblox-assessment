@@ -171,11 +171,33 @@ describe("checkout discount and rewards", () => {
     const firstGenerated = generateDiscountCode();
     expect(firstGenerated.success).toBe(true);
 
+    const secondGeneratedSameMilestone = generateDiscountCode();
+    expect(secondGeneratedSameMilestone.success).toBe(false);
+
     addToCart({ productId: "p-001", quantity: 1 });
     const fifthOrder = checkoutCart({});
     expect(fifthOrder.success).toBe(true);
 
     const afterFifthOrderGeneration = generateDiscountCode();
     expect(afterFifthOrderGeneration.success).toBe(false);
+  });
+
+  it("caps coupon issuance to two per milestone (one auto and one admin)", () => {
+    addToCart({ productId: "p-001", quantity: 1 });
+    checkoutCart({});
+
+    addToCart({ productId: "p-001", quantity: 1 });
+    const secondOrder = checkoutCart({});
+    expect(secondOrder.success).toBe(true);
+    if (!secondOrder.success) {
+      throw new Error("Expected successful second order.");
+    }
+    expect(secondOrder.rewardCoupon).toBeDefined();
+
+    const adminCoupon = generateDiscountCode();
+    expect(adminCoupon.success).toBe(true);
+
+    const extraAdminCoupon = generateDiscountCode();
+    expect(extraAdminCoupon.success).toBe(false);
   });
 });

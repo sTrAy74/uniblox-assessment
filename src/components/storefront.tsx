@@ -16,6 +16,15 @@ type ApiResponse<T> = {
   code?: string;
 };
 
+type CheckoutResponse = {
+  order: { id: string; total: number; discountAmount: number };
+  rewardCoupon: {
+    code: string;
+    discountPercent: number;
+    expiresAt: string;
+  } | null;
+};
+
 function formatMoney(value: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -133,9 +142,7 @@ export default function Storefront({ products }: StorefrontProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ couponCode }),
     });
-    const body = (await response.json()) as ApiResponse<{
-      order: { id: string; total: number; discountAmount: number };
-    }>;
+    const body = (await response.json()) as ApiResponse<CheckoutResponse>;
 
     if (!response.ok || !body.success || !body.data) {
       setNotice(body.error ?? "Checkout failed.");
@@ -143,9 +150,11 @@ export default function Storefront({ products }: StorefrontProps) {
       return;
     }
 
-    setNotice(
-      `Order ${body.data.order.id} placed successfully. Final total: ${formatMoney(body.data.order.total)}.`,
-    );
+    const baseMessage = `Order ${body.data.order.id} placed successfully. Final total: ${formatMoney(body.data.order.total)}.`;
+    const couponMessage = body.data.rewardCoupon
+      ? ` You earned a coupon: ${body.data.rewardCoupon.code} (${body.data.rewardCoupon.discountPercent}% off, valid until ${new Date(body.data.rewardCoupon.expiresAt).toLocaleString()}).`
+      : "";
+    setNotice(`${baseMessage}${couponMessage}`);
     setCouponCode("");
     await fetchCart();
     setBusy(false);
