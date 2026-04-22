@@ -67,6 +67,7 @@ export async function POST(request: Request) {
       success: true,
       data: {
         order: result.order,
+        rewardCoupon: result.rewardCoupon ?? null,
       },
     },
     { status: 201 },

@@ -34,7 +34,23 @@ describe("checkout discount and rewards", () => {
     expect(afterSecondOrderAttempt.success).toBe(true);
     if (afterSecondOrderAttempt.success) {
       expect(afterSecondOrderAttempt.coupon.discountPercent).toBe(10);
-      expect(afterSecondOrderAttempt.remainingEligibleGenerations).toBe(0);
+    }
+  });
+
+  it("auto-issues a coupon on every second successful order", () => {
+    addToCart({ productId: "p-001", quantity: 1 });
+    const firstOrder = checkoutCart({});
+    expect(firstOrder.success).toBe(true);
+    if (firstOrder.success) {
+      expect(firstOrder.rewardCoupon).toBeUndefined();
+    }
+
+    addToCart({ productId: "p-001", quantity: 1 });
+    const secondOrder = checkoutCart({});
+    expect(secondOrder.success).toBe(true);
+    if (secondOrder.success) {
+      expect(secondOrder.rewardCoupon).toBeDefined();
+      expect(secondOrder.rewardCoupon?.discountPercent).toBe(10);
     }
   });
 
@@ -141,11 +157,11 @@ describe("checkout discount and rewards", () => {
     const metrics = getAdminMetrics();
     expect(metrics.purchasedItemsCount).toBe(4);
     expect(metrics.revenue).toBeGreaterThan(0);
-    expect(metrics.discountCodesCount).toBe(1);
+    expect(metrics.discountCodesCount).toBe(2);
     expect(metrics.totalDiscountsGiven).toBeGreaterThan(0);
   });
 
-  it("tracks remaining eligible generations when many orders are placed", () => {
+  it("allows admin generation only when current order count satisfies nth condition", () => {
     for (let index = 0; index < 4; index += 1) {
       addToCart({ productId: "p-001", quantity: 1 });
       const order = checkoutCart({});
@@ -154,17 +170,12 @@ describe("checkout discount and rewards", () => {
 
     const firstGenerated = generateDiscountCode();
     expect(firstGenerated.success).toBe(true);
-    if (firstGenerated.success) {
-      expect(firstGenerated.remainingEligibleGenerations).toBe(1);
-    }
 
-    const secondGenerated = generateDiscountCode();
-    expect(secondGenerated.success).toBe(true);
-    if (secondGenerated.success) {
-      expect(secondGenerated.remainingEligibleGenerations).toBe(0);
-    }
+    addToCart({ productId: "p-001", quantity: 1 });
+    const fifthOrder = checkoutCart({});
+    expect(fifthOrder.success).toBe(true);
 
-    const thirdGenerated = generateDiscountCode();
-    expect(thirdGenerated.success).toBe(false);
+    const afterFifthOrderGeneration = generateDiscountCode();
+    expect(afterFifthOrderGeneration.success).toBe(false);
   });
 });

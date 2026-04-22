@@ -31,12 +31,8 @@ function issueRewardCoupon(now: Date): Coupon {
   return coupon;
 }
 
-function getEligibleCouponCount(): number {
-  return Math.floor(orders.length / REWARD_ORDER_INTERVAL);
-}
-
-function getRemainingCouponGenerationCount(): number {
-  return Math.max(0, getEligibleCouponCount() - coupons.length);
+function isNthOrderConditionSatisfied(): boolean {
+  return orders.length > 0 && orders.length % REWARD_ORDER_INTERVAL === 0;
 }
 
 function getCouponByCode(code: string): Coupon | undefined {
@@ -53,6 +49,7 @@ type CheckoutResult =
   | {
       success: true;
       order: Order;
+      rewardCoupon?: Coupon;
     }
   | {
       success: false;
@@ -138,10 +135,12 @@ export function checkoutCart(payload: CheckoutRequest): CheckoutResult {
 
   orders.push(order);
   clearCart();
+  const rewardCoupon = isNthOrderConditionSatisfied() ? issueRewardCoupon(now) : undefined;
 
   return {
     success: true,
     order,
+    rewardCoupon,
   };
 }
 
@@ -160,8 +159,7 @@ type GenerateDiscountCodeResult =
     };
 
 export function generateDiscountCode(): GenerateDiscountCodeResult {
-  const remaining = getRemainingCouponGenerationCount();
-  if (remaining <= 0) {
+  if (!isNthOrderConditionSatisfied()) {
     return {
       success: false,
       error: {
@@ -176,7 +174,7 @@ export function generateDiscountCode(): GenerateDiscountCodeResult {
   return {
     success: true,
     coupon,
-    remainingEligibleGenerations: getRemainingCouponGenerationCount(),
+    remainingEligibleGenerations: 0,
   };
 }
 
