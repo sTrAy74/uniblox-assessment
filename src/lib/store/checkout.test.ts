@@ -200,4 +200,30 @@ describe("checkout discount and rewards", () => {
     const extraAdminCoupon = generateDiscountCode();
     expect(extraAdminCoupon.success).toBe(false);
   });
+
+  it("supports custom discount and expiry for admin-generated coupons", () => {
+    addToCart({ productId: "p-001", quantity: 1 });
+    checkoutCart({});
+    addToCart({ productId: "p-001", quantity: 1 });
+    const secondOrder = checkoutCart({});
+    expect(secondOrder.success).toBe(true);
+
+    const customExpiry = new Date(Date.now() + 30 * 60 * 1000);
+    const adminCoupon = generateDiscountCode({
+      discountPercent: 35,
+      expiresAt: customExpiry,
+    });
+
+    expect(adminCoupon.success).toBe(true);
+    if (!adminCoupon.success) {
+      throw new Error("Expected admin coupon generation to succeed.");
+    }
+
+    expect(adminCoupon.coupon.discountPercent).toBe(35);
+    expect(new Date(adminCoupon.coupon.expiresAt).getTime()).toBe(customExpiry.getTime());
+
+    if (secondOrder.success) {
+      expect(secondOrder.rewardCoupon?.discountPercent).toBe(10);
+    }
+  });
 });

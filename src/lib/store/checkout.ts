@@ -19,12 +19,18 @@ function buildCouponCode(): string {
   return `SAVE10-${randomPart}`;
 }
 
-function issueRewardCoupon(now: Date): Coupon {
-  const expiresAt = new Date(now.getTime() + REWARD_COUPON_TTL_MS);
+type CouponGenerationOptions = {
+  discountPercent?: number;
+  expiresAt?: Date;
+};
+
+function issueRewardCoupon(now: Date, options?: CouponGenerationOptions): Coupon {
+  const discountPercent = options?.discountPercent ?? REWARD_DISCOUNT_PERCENT;
+  const expiresAt = options?.expiresAt ?? new Date(now.getTime() + REWARD_COUPON_TTL_MS);
 
   const coupon: Coupon = {
     code: buildCouponCode(),
-    discountPercent: REWARD_DISCOUNT_PERCENT,
+    discountPercent,
     expiresAt: expiresAt.toISOString(),
   };
 
@@ -185,7 +191,12 @@ type GenerateDiscountCodeResult =
       };
     };
 
-export function generateDiscountCode(): GenerateDiscountCodeResult {
+type GenerateDiscountCodeOptions = {
+  discountPercent?: number;
+  expiresAt?: Date;
+};
+
+export function generateDiscountCode(options?: GenerateDiscountCodeOptions): GenerateDiscountCodeResult {
   const milestone = getCurrentMilestoneNumber();
   if (milestone === null) {
     return {
@@ -208,7 +219,7 @@ export function generateDiscountCode(): GenerateDiscountCodeResult {
     };
   }
 
-  const coupon = issueRewardCoupon(new Date());
+  const coupon = issueRewardCoupon(new Date(), options);
   milestoneState.adminIssued = true;
 
   return {

@@ -30,6 +30,9 @@ This is a demo store backend/frontend foundation built with Next.js App Router.
 - `POST /api/admin/discounts/generate` - generate coupon when the current order count satisfies the nth-order condition
   - with `n=2`, this is allowed only when successful order count is divisible by `2`
   - per milestone, admin generation is capped to one coupon
+  - body options:
+    - `discountPercent` (number, `1` to `95`)
+    - `expiresAt` (ISO datetime string, must be future)
 - `GET /api/admin/metrics` - fetch:
   - purchased items count
   - revenue
@@ -49,7 +52,9 @@ This is a demo store backend/frontend foundation built with Next.js App Router.
 ## Discount Rule
 
 - Every **2nd successful order** auto-issues one coupon from checkout.
+- Auto-issued coupon is fixed at **10%** and **2 hours** expiry.
 - For the same milestone, admin can generate one additional coupon.
+- Admin-generated coupon can set custom discount (`max 95%`) and custom expiry.
 - This caps coupon issuance to **2 coupons per milestone**: one auto + one admin.
 - Coupon discount is **10%**.
 - Coupon is **single-use**.
